@@ -35,7 +35,9 @@ class Visitor {
         for (int i = 0; i < depth; i++) {
             sb.append("\t");
         }
+
         System.out.println(sb.toString() + node.getSimpleName());
+
         depth++;
         for (Node child : node.getChildren()) {
             child.accept(this);
@@ -62,6 +64,7 @@ class Node {
         int index = children.indexOf(child);
         if (index < 0) {
             children.add(child);
+            child.setParent(this);
             return child;
         } else {
             return children.get(index);
@@ -100,24 +103,24 @@ class NodeFactory {
 
         for (int i = 0; i < split.length; i++) {
             String part = split[i];
+
+            // カレントディレクトリの"."のみだった場合は何もしない
+            if (part.equals("."))
+                continue;
+
+            Node node = new Node();
+            node.setSimpleName(part);
+
             if (split.length - 1 == i) {
                 // 最後の要素の場合
-                Node leafNode = new Node();
-                leafNode.setType("file");
-                leafNode.setSimpleName(part);
-                pointedNode.addChild(leafNode);
-                leafNode.setParent(pointedNode);
-                pointedNode = leafNode;
-            } else if (part.equals(".")) {
-                // カレントディレクトリの"."のみだった場合は何もしない
+                node.setType("file");
+                pointedNode.addChild(node);
+                pointedNode = node;
             } else {
                 // 途中の要素の場合
-                Node internalNode = new Node();
-                internalNode.setType("directory");
-                internalNode.setSimpleName(part);
+                node.setType("directory");
                 // 追加できなかった既存のノード、追加できたら追加したノードを取得してそれをpointedNodeにする
-                Node added = pointedNode.addChild(internalNode);
-                internalNode.setParent(pointedNode);
+                Node added = pointedNode.addChild(node);
                 pointedNode = added;
             }
         }
